@@ -1,0 +1,34 @@
+{
+	"name": "@svelstack/translator",
+	"version": "0.9.0",
+	"scripts": {
+		"build": "tsup && npm run prepack",
+		"prepack": "publint",
+		"check": "tsc --noEmit",
+		"test": "vitest"
+	},
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./src/types.d.ts",
+	"exports": {
+		".": {
+			"types": "./src/types.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src/types.d.ts",
+		"*.d.ts",
+		"README.md"
+	],
+	"devDependencies": {
+		"publint": "^0.3.2",
+		"tsup": "^8.3.5",
+		"vite": "^6.0.7",
+		"vitest": "^2.1.8",
+		"@sveltejs/vite-plugin-svelte": "^5.0.3"
+	}
+}
