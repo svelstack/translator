@@ -30,10 +30,7 @@ export class Translator {
 	 * @private
 	 * @type {ChainMessageFormatter}
 	 */
-	formatter = new ChainMessageFormatter([
-		new PluralMessageFormatter(),
-		new ParameterMessageFormatter()
-	]);
+	formatter;
 
 	/**
 	 * @param {import('./types.js').TranslatorOptions} options - Configuration options for the Translator.
@@ -48,6 +45,15 @@ export class Translator {
 
 		this._language = this.getLanguage(this.options.language);
 		this.report = this.options.report || function () {};
+
+		if (Array.isArray(options.formatters)) {
+			this.formatter = new ChainMessageFormatter(options.formatters);
+		} else {
+			this.formatter = new ChainMessageFormatter([
+				new PluralMessageFormatter(),
+				new ParameterMessageFormatter({ parameterPlaceholder: { start: '{', end: '}' } }),
+			]);
+		}
 
 		this.load(this._language);
 	}

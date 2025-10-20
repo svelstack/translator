@@ -70,6 +70,26 @@ test('parameters', () => {
 	expect(translator.trans('messages', 'hello', { name: 'world!' })).toBe('Hello, world!');
 });
 
+test('custom parameter placeholder', () => {
+	const translator = new Translator({
+		language: 'en',
+		fallbackLanguage: 'en',
+		dictionaries: {
+			en: {
+				messages: {
+					hello: 'Hello, %name%',
+				},
+			},
+		},
+		parameterPlaceholder: {
+			start: '%',
+			end: '%',
+		},
+	});
+
+	expect(translator.trans('messages', 'hello', { name: 'world!' })).toBe('Hello, world!');
+});
+
 test('change to language which does not exist', () => {
 	const translator = new Translator({
 		language: 'en',

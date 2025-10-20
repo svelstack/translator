@@ -8,6 +8,7 @@ export type TranslatorOptions = {
 	dictionaries: {
 		[lang: string]: (() => Promise<Dictionary>) | Dictionary;
 	},
+	formatters?: MessageFormatter[];
 	report?: (error: any) => void;
 };
 

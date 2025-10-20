@@ -5,13 +5,18 @@ import * as ts from 'typescript';
 import { assertExistsDir, findFiles, mkdir, writeToFile } from './filesystem';
 import { flatten, validateDictionaries } from './helper';
 import { type Loader, YamlLoader } from './loader';
-import { parseParameters } from './parameter';
+import { createParameterRegex, parseParameters } from './parameter';
 import type { Dictionaries } from './types';
 
 const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
 const program = new Command();
 
-function main(transDir: string, outputDir: string) {
+type ProgramOptions = {
+	placeholderStart: string;
+	placeholderEnd: string;
+};
+
+function main(transDir: string, outputDir: string, options: ProgramOptions) {
 	transDir = join(process.cwd(), transDir);
 	outputDir = join(process.cwd(), outputDir);
 
@@ -67,7 +72,7 @@ function main(transDir: string, outputDir: string) {
 	let first = true;
 	Object.entries(dictionaries).forEach(([lang, domains]) => {
 		if (first) {
-			writeToFile(`${outputDir}/types.d.ts`, createMappingFile(domains));
+			writeToFile(`${outputDir}/types.d.ts`, createMappingFile(domains, options));
 		}
 
 		writeToFile(`${dictionaryDir}/${lang}.ts`, createTranslationFile(domains));
@@ -81,8 +86,10 @@ function main(transDir: string, outputDir: string) {
 program
 	.argument('<transDir>', 'Directory containing translations')
 	.argument('<outputDir>', 'Output directory')
-	.action((transDir: string, outputDir: string) => {
-		main(transDir, outputDir);
+	.option('-ps, --placeholder-start <string>', 'Parameter placeholder start delimiter', '{')
+	.option('-pe, --placeholder-end <string>', 'Parameter placeholder end delimiter', '}')
+	.action((transDir: string, outputDir: string, options: ProgramOptions) => {
+		main(transDir, outputDir, options);
 	})
 	.parse();
 
@@ -191,15 +198,16 @@ function createTranslationFile(domains: Record<string, Record<string, string>>) 
 	return printer.printFile(sourceFile);
 }
 
-function createMappingFile(domains: Record<string, Record<string, string>>) {
+function createMappingFile(domains: Record<string, Record<string, string>>, options: ProgramOptions) {
 	const types: ts.PropertySignature[] = [];
 	const never = ts.factory.createKeywordTypeNode(ts.SyntaxKind.NeverKeyword);
+	const parametersRegex = createParameterRegex(options.placeholderStart, options.placeholderEnd);
 
 	Object.entries(domains).forEach(([domain, translations]) => {
 		const typesForDomain: ts.PropertySignature[] = [];
 
 		Object.entries(translations).forEach(([key, translation]) => {
-			const params = parseParameters(translation);
+			const params = parseParameters(translation, parametersRegex);
 			let type: ts.TypeNode = never;
 
 			if (params.length > 0) {

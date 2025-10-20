@@ -77,6 +77,35 @@ export class PluralMessageFormatter {
 
 export class ParameterMessageFormatter {
 
+	/** @type {RegExp} */
+	parameterRegex;
+
+	/** @type {string} */
+	parameterPlaceholderStart;
+
+	/** @type {string} */
+	parameterPlaceholderEnd;
+
+	/**
+	 * @param {{ parameterPlaceholder: { start: string, end: string } }} settings
+	 */
+	constructor(settings) {
+		this.parameterPlaceholderStart = settings.parameterPlaceholder.start;
+		this.parameterPlaceholderEnd = settings.parameterPlaceholder.end;
+
+		if (typeof this.parameterPlaceholderStart !== 'string') {
+			throw new Error('ParameterMessageFormatter: parameterPlaceholder.start must be a string.');
+		}
+		if (typeof this.parameterPlaceholderEnd !== 'string') {
+			throw new Error('ParameterMessageFormatter: parameterPlaceholder.end must be a string.');
+		}
+
+		const quotedStart = escapeRegExp(this.parameterPlaceholderStart);
+		const quotedEnd = escapeRegExp(this.parameterPlaceholderEnd);
+
+		this.parameterRegex = new RegExp(`${quotedStart}\\s*(.*?)\\s*${quotedEnd}`, 'g');
+	}
+
 	/**
 	 * Formats the message by replacing placeholders with parameter values.
 	 * @param {string} message - The message to format.
@@ -90,14 +119,17 @@ export class ParameterMessageFormatter {
 			return message;
 		}
 
-		return message.replace(/\{\s*(.*?)\s*}/g, (_, key) => {
+		return message.replace(this.parameterRegex, (_, key) => {
 			const val = parameters[key];
-
 			if (val == null) {
-				return `{${key}}`;
+				return `${this.parameterPlaceholderStart}${key}${this.parameterPlaceholderEnd}`;
 			}
 
 			return val.toString();
 		});
 	}
+}
+
+function escapeRegExp(str) {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
