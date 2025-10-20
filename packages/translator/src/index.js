@@ -151,3 +151,5 @@ export class Translator {
 	 */
 	changed() {}
 }
+
+export { PluralMessageFormatter, ParameterMessageFormatter, ChainMessageFormatter }

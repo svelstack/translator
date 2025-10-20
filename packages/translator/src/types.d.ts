@@ -70,6 +70,8 @@ export class PluralMessageFormatter implements MessageFormatter {
 
 export class ParameterMessageFormatter implements MessageFormatter {
 
+	constructor(settings: { parameterPlaceholder: { start: string; end: string } });
+
 	format(message: string, options: MessageFormatterOptions): string;
 
 }
