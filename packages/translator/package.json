@@ -1,6 +1,6 @@
 {
 	"name": "@svelstack/translator",
-	"version": "0.9.0",
+	"version": "0.9.3",
 	"scripts": {
 		"build": "tsup && npm run prepack",
 		"prepack": "publint",
