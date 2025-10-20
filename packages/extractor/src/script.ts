@@ -14,6 +14,7 @@ const program = new Command();
 type ProgramOptions = {
 	placeholderStart: string;
 	placeholderEnd: string;
+	skipValidation?: string|boolean;
 };
 
 function main(transDir: string, outputDir: string, options: ProgramOptions) {
@@ -65,7 +66,7 @@ function main(transDir: string, outputDir: string, options: ProgramOptions) {
 		}
 	}
 
-	if (!validateDictionaries(dictionaries)) {
+	if (!validateDictionaries(dictionaries, options)) {
 		return;
 	}
 
@@ -88,6 +89,7 @@ program
 	.argument('<outputDir>', 'Output directory')
 	.option('-ps, --placeholder-start <string>', 'Parameter placeholder start delimiter', '{')
 	.option('-pe, --placeholder-end <string>', 'Parameter placeholder end delimiter', '}')
+	.option('--skip-validation [<languages>]', 'Skip validation of dictionaries')
 	.action((transDir: string, outputDir: string, options: ProgramOptions) => {
 		main(transDir, outputDir, options);
 	})

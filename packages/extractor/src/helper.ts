@@ -74,7 +74,11 @@ function createReporter() {
 	};
 }
 
-export function validateDictionaries(dictionaries: Dictionaries): boolean {
+export function validateDictionaries(dictionaries: Dictionaries, options: { skipValidation?: string|boolean }): boolean {
+	if (options.skipValidation === true) {
+		return true;
+	}
+
 	let reference: {
 		lang: string;
 		domains: Map<string, Set<string>>;
@@ -82,8 +86,17 @@ export function validateDictionaries(dictionaries: Dictionaries): boolean {
 
 	const reporter = createReporter();
 
+	const languagesToSkip = new Set<string>();
+	if (typeof options.skipValidation === 'string') {
+		options.skipValidation.split(',').map(l => l.trim()).forEach(l => languagesToSkip.add(l));
+	}
+
 	// Compare keys
 	Object.entries(dictionaries).forEach(([lang, domains]) => {
+		if (languagesToSkip.has(lang)) {
+			return;
+		}
+
 		if (!reference) {
 			const ref = {
 				lang,
