@@ -27,6 +27,8 @@ export class Translator {
 
 	trans(domain: string, key: string, parameters?: Record<string, string|number>): string;
 
+	transMessage(message: TranslatableMessage): string;
+
 	protected changed(): void;
 }
 
@@ -39,6 +41,23 @@ export interface TypesafeTranslator<Mapping extends Record<string, Record<string
 	): string;
 
 }
+
+export type TranslatableMessage = {
+	domain: string;
+	key: string;
+	parameters?: Record<string, string|number>;
+};
+
+export function createTranslatableMessageFactory<Mapping extends Record<string, Record<string, string>>>(): <
+	Domain extends keyof Mapping,
+	Key extends keyof Mapping[Domain]
+>(
+	domain: Domain,
+	key: Key,
+	...rest: Mapping[Domain][Key] extends never
+		? [parameters?: undefined]
+		: [parameters: Record<Mapping[Domain][Key], string>]
+) => { domain: Domain, key: Key, parameters: Mapping[Domain][Key] extends never ? undefined : Record<Mapping[Domain][Key], string> };
 
 export interface MessageFormatter {
 

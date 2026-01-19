@@ -115,6 +115,10 @@ export class Translator {
 		});
 	}
 
+	transMessage(message) {
+		return this.trans(message.domain, message.key, message.parameters);
+	}
+
 	/**
 	 * Loads translations for a specified language.
 	 * @private
@@ -150,6 +154,12 @@ export class Translator {
 	 * @protected
 	 */
 	changed() {}
+}
+
+export function createTranslatableMessageFactory() {
+	return (domain, key, parameters) => {
+		return { domain, key, parameters };
+	}
 }
 
 export { PluralMessageFormatter, ParameterMessageFormatter, ChainMessageFormatter }

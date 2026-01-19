@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import { Translator } from '../src';
+import { Translator, createTranslatableMessageFactory, ParameterMessageFormatter } from '../src';
 
 test('sync messages', () => {
 	const translator = new Translator({
@@ -81,10 +81,9 @@ test('custom parameter placeholder', () => {
 				},
 			},
 		},
-		parameterPlaceholder: {
-			start: '%',
-			end: '%',
-		},
+		formatters: [
+			new ParameterMessageFormatter({ parameterPlaceholder: { start: '%', end: '%' } }),
+		],
 	});
 
 	expect(translator.trans('messages', 'hello', { name: 'world!' })).toBe('Hello, world!');
@@ -235,4 +234,75 @@ test('plural with custom message', () => {
 
 	expect(translator.trans('messages', 'apple', { count: 1, str: 'one' })).toBe('one apple');
 	expect(translator.trans('messages', 'apple', { count: 2, str: 'two' })).toBe('two apples');
+});
+
+test('transMessage', () => {
+	const translator = new Translator({
+		language: 'en',
+		fallbackLanguage: 'en',
+		dictionaries: {
+			en: {
+				messages: {
+					hello: 'Hello, {name}',
+				},
+			},
+		},
+	});
+
+	expect(translator.transMessage({ domain: 'messages', key: 'hello', parameters: { name: 'world' } })).toBe('Hello, world');
+});
+
+test('transMessage without parameters', () => {
+	const translator = new Translator({
+		language: 'en',
+		fallbackLanguage: 'en',
+		dictionaries: {
+			en: {
+				messages: {
+					hello: 'Hello',
+				},
+			},
+		},
+	});
+
+	expect(translator.transMessage({ domain: 'messages', key: 'hello' })).toBe('Hello');
+});
+
+test('createTranslatableMessageFactory', () => {
+	const createMessage = createTranslatableMessageFactory();
+
+	const message = createMessage('messages', 'hello', { name: 'world' });
+
+	expect(message.domain).toBe('messages');
+	expect(message.key).toBe('hello');
+	expect(message.parameters).toEqual({ name: 'world' });
+});
+
+test('createTranslatableMessageFactory without parameters', () => {
+	const createMessage = createTranslatableMessageFactory();
+
+	const message = createMessage('messages', 'hello');
+
+	expect(message.domain).toBe('messages');
+	expect(message.key).toBe('hello');
+	expect(message.parameters).toBeUndefined();
+});
+
+test('createTranslatableMessageFactory with transMessage', () => {
+	const translator = new Translator({
+		language: 'en',
+		fallbackLanguage: 'en',
+		dictionaries: {
+			en: {
+				messages: {
+					hello: 'Hello, {name}',
+				},
+			},
+		},
+	});
+
+	const createMessage = createTranslatableMessageFactory();
+	const message = createMessage('messages', 'hello', { name: 'world' });
+
+	expect(translator.transMessage(message)).toBe('Hello, world');
 });
