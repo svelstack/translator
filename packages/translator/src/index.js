@@ -10,9 +10,21 @@ export class Translator {
 
 	/**
 	 * @private
+	 * @type {Record<string, Record<string, string>> | undefined}
+	 */
+	fallbackTranslations = undefined;
+
+	/**
+	 * @private
 	 * @type {Promise<any> | undefined}
 	 */
 	_promise = undefined;
+
+	/**
+	 * @private
+	 * @type {Promise<any> | undefined}
+	 */
+	_fallbackPromise = undefined;
 
 	/**
 	 * @private
@@ -56,6 +68,10 @@ export class Translator {
 		}
 
 		this.load(this._language);
+
+		if (this._language !== this.options.fallbackLanguage) {
+			this.loadFallback();
+		}
 	}
 
 	/**
@@ -69,6 +85,7 @@ export class Translator {
 		if (this._language !== val) {
 			await this.load(val);
 			this._language = val;
+			this.changed();
 		}
 	}
 
@@ -85,7 +102,7 @@ export class Translator {
 	 * @returns {Promise<void>} Resolves when loading is complete.
 	 */
 	async wait() {
-		await this._promise;
+		await Promise.all([this._promise, this._fallbackPromise]);
 	}
 
 	/**
@@ -100,7 +117,8 @@ export class Translator {
 			return '';
 		}
 
-		const translation = this.translations[domain]?.[key];
+		const translation = this.translations[domain]?.[key]
+			?? this.fallbackTranslations?.[domain]?.[key];
 
 		if (translation === undefined) {
 			return `${domain}.${key}`;
@@ -135,8 +153,23 @@ export class Translator {
 		} else {
 			this.translations = dictionary;
 		}
+	}
 
-		this.changed();
+	/**
+	 * Loads fallback translations.
+	 * @private
+	 * @returns {Promise<void>} Resolves when the fallback translations are loaded.
+	 */
+	async loadFallback() {
+		const fallbackDictionary = this.options.dictionaries[this.options.fallbackLanguage];
+
+		if (typeof fallbackDictionary === 'function') {
+			const promise = this._fallbackPromise = fallbackDictionary();
+			this.fallbackTranslations = await promise;
+			this._fallbackPromise = undefined;
+		} else {
+			this.fallbackTranslations = fallbackDictionary;
+		}
 	}
 
 	/**

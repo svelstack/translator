@@ -89,6 +89,54 @@ test('custom parameter placeholder', () => {
 	expect(translator.trans('messages', 'hello', { name: 'world!' })).toBe('Hello, world!');
 });
 
+test('fallback to default language when translation is missing', () => {
+	const translator = new Translator({
+		language: 'de',
+		fallbackLanguage: 'en',
+		dictionaries: {
+			en: {
+				messages: {
+					hello: 'Hello',
+					goodbye: 'Goodbye',
+				},
+			},
+			de: {
+				messages: {
+					hello: 'Hallo',
+				},
+			},
+		},
+	});
+
+	expect(translator.trans('messages', 'hello')).toBe('Hallo');
+	expect(translator.trans('messages', 'goodbye')).toBe('Goodbye');
+});
+
+test('fallback to default language when translation is missing (async)', async () => {
+	const translator = new Translator({
+		language: 'de',
+		fallbackLanguage: 'en',
+		dictionaries: {
+			en: () => Promise.resolve({
+				messages: {
+					hello: 'Hello',
+					goodbye: 'Goodbye',
+				},
+			}),
+			de: () => Promise.resolve({
+				messages: {
+					hello: 'Hallo',
+				},
+			}),
+		},
+	});
+
+	await translator.wait();
+
+	expect(translator.trans('messages', 'hello')).toBe('Hallo');
+	expect(translator.trans('messages', 'goodbye')).toBe('Goodbye');
+});
+
 test('change to language which does not exist', () => {
 	const translator = new Translator({
 		language: 'en',

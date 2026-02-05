@@ -1,11 +1,12 @@
 {
 	"name": "@svelstack/translator",
-	"version": "0.9.3",
+	"version": "0.9.5",
 	"scripts": {
 		"build": "tsup && npm run prepack",
 		"prepack": "publint",
 		"check": "tsc --noEmit",
-		"test": "vitest"
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
 	"type": "module",
 	"main": "./dist/index.js",
